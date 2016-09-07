@@ -11,9 +11,10 @@ git.useGitDescribe := true
 libraryDependencies ++= Seq(
   "joda-time" % "joda-time" % "2.7",
   "org.joda" % "joda-convert" % "1.7",
-  "org.typelevel" %% "cats" % "0.7.0",
+  "org.typelevel" %% "cats-core" % "0.7.0",
   "com.typesafe.play" %% "play-json" % "2.5.4",
   "com.wellfactored" %% "play-bindings" % "1.1.0",
+  "org.reactivemongo" %% "reactivemongo" % "0.11.14",
 
   "org.scalatest" %% "scalatest" % "3.0.0" % Test
 

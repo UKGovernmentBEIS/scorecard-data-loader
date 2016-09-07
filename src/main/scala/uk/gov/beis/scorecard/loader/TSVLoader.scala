@@ -6,9 +6,8 @@ import cats.syntax.validated._
 import play.api.libs.json.JsObject
 import uk.gov.beis.scorecard.loader.models.{Apprenticeship, Provider}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
-
-case class DataSet()
 
 case class ExtractionResult[T](json: JsObject, value: ValidatedNel[String, T])
 
@@ -43,6 +42,13 @@ object TSVLoader {
         e.errors.toList.foreach(s => println(s"line ${le.lineNumber}:apprenticeship: $s"))
       }
     }
+
+    for {
+      _ <- MongoStore.dropApprenticeships()
+      _ <- MongoStore.dropProviders()
+      _ <- MongoStore.writeProviders(data.providers)
+      _ <- MongoStore.writeApprenticeships(data.apprenticeships)
+    } yield MongoStore.shutdown()
   }
 
   def loadFromSource(source: Source): ProcessingResults = {
