@@ -57,7 +57,7 @@ object FieldMappings {
     s("address_2") -> "address2",
     s("town") -> "town",
     s("county") -> "county",
-    s("postcode") -> "postcode",
+    s("post_code") -> "post_code",
     s("latitude") -> "latitude",
     s("longitude") -> "longitude"
   )

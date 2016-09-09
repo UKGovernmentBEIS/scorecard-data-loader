@@ -7,6 +7,8 @@ import play.api.libs.json.JsObject
 import uk.gov.beis.scorecard.loader.models.{Apprenticeship, Provider}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.io.Source
 
 case class ExtractionResult[T](json: JsObject, value: ValidatedNel[String, T])
@@ -43,12 +45,37 @@ object TSVLoader {
       }
     }
 
-    for {
+    val f = for {
+      updatedProviders <- populatePostcodes(data.providers)
       _ <- MongoStore.dropApprenticeships()
       _ <- MongoStore.dropProviders()
-      _ <- MongoStore.writeProviders(data.providers)
+      _ <- MongoStore.writeProviders(updatedProviders)
       _ <- MongoStore.writeApprenticeships(data.apprenticeships)
-    } yield MongoStore.shutdown()
+    } yield ()
+
+    f.onComplete { _ =>
+      MongoStore.shutdown()
+      dispatch.Http.shutdown()
+    }
+
+    Await.result(f, Duration(100, SECONDS))
+  }
+
+  def populatePostcodes(providers: List[Provider]): Future[List[Provider]] = {
+    providers.foldLeft(Future.successful(List[Provider]())) { (f, p) =>
+      f.flatMap { ps =>
+        p.address.post_code match {
+          case Some(code) =>
+            Postcodes.location(code).map {
+              case None => p +: ps
+              case Some(point) =>
+                val newAddr = p.address.copy(longitude = Some(point.lon), latitude = Some(point.lat))
+                p.copy(address = newAddr) +: ps
+            }
+          case None => Future.successful(p +: ps)
+        }
+      }
+    }
   }
 
   def loadFromSource(source: Source): ProcessingResults = {

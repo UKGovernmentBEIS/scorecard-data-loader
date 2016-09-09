@@ -15,9 +15,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-json" % "2.5.4",
   "com.wellfactored" %% "play-bindings" % "1.1.0",
   "org.reactivemongo" %% "reactivemongo" % "0.11.14",
+  "net.databinder.dispatch" %% "dispatch-core" % "0.11.3",
 
   "org.scalatest" %% "scalatest" % "3.0.0" % Test
-
 )
 
 resolvers += Resolver.sonatypeRepo("releases")
